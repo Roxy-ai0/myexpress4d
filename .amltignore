@@ -1,0 +1,9 @@
+dataset
+checkpoints
+output_model
+model
+static
+glove
+obj_exports
+results
+wandb

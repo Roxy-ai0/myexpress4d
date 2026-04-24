@@ -1,0 +1,60 @@
+description: zhanglin_datav1_Training_Job
+
+target:
+  service: aml
+  name: oobjectdet 
+  vc: resrchvc
+
+environment:
+  image: amsword/setup:py310pt113cu11
+  registry: docker.io
+  setup:
+    - conda env create -f environment.yml
+    - conda run -n Express4D pip install git+https://github.com/openai/CLIP.git
+    - conda run -n Express4D pip install git+https://github.com/GuyTevet/smplx.git
+
+storage:
+  input:
+    storage_account_name: vigstandard
+    container_name: data
+    is_output: true
+    mount_dir: /storage
+
+env_defaults:
+  NODES: 1
+  GPUS: 8
+  MEM: 32
+  SLA: Premium 
+  PRIORITY: high
+
+code:
+  local_dir: /root/mount/v-jinpewang/az_workspace/zhanglin/Express4D
+
+jobs:
+- name: zhanglin_datav1_Training_Job
+  sku: ${NODES}x${MEM}G${GPUS}
+  sla_tier: ${SLA} 
+  process_count_per_node: 1
+  mpi: True
+  submit_args: 
+    env:
+      AMLT_DOCKERFILE_TEMPLATE: DEFAULT
+      WANDB_MODE: offline
+    max_attempts: 1
+    container_args:
+      shm_size: 512g
+  command:
+    - >
+      source activate Express4D &&
+      cd /storage/v-jinpewang/az_workspace/zhanglin/Express4D &&
+      python -c "import clip; clip.load('ViT-B/32', device='cpu')" &&
+      WANDB_MODE=disabled torchrun --nproc_per_node=8 -m train.train_mdm \
+        --save_dir ./output_model/mdm_mydata \
+        --dataset Express4D_reaction_nofilter_v1 \
+        --data_mode arkit \
+        --save_interval 50000 \
+        --cond_mode text \
+        --overwrite \
+        --use_ema \
+        --flip_face_on \
+        --num_steps 450000

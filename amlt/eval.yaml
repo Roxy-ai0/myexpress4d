@@ -1,0 +1,51 @@
+description: zhanglin_Express4D_Eval_Job
+
+target:
+  service: aml
+  name: oobjectdet
+  vc: resrchvc
+
+environment:
+  image: amsword/setup:py310pt113cu11
+  registry: docker.io
+  setup:
+    - conda env create -f environment.yml
+    - conda run -n Express4D pip install git+https://github.com/openai/CLIP.git
+    - conda run -n Express4D pip install git+https://github.com/GuyTevet/smplx.git
+
+storage:
+  input:
+    storage_account_name: vigstandard
+    container_name: data
+    is_output: true
+    mount_dir: /storage
+
+env_defaults:
+  NODES: 1
+  GPUS: 8
+  MEM: 32
+  SLA: Premium 
+  PRIORITY: high
+
+code:
+  local_dir: /root/mount/v-jinpewang/az_workspace/zhanglin/Express4D
+
+jobs:
+- name: zhanglin_Express4D_Eval_Job
+  sku: ${NODES}x${MEM}G${GPUS}
+  sla_tier: ${SLA} 
+  process_count_per_node: 1
+  mpi: True
+  submit_args: 
+    env:
+      AMLT_DOCKERFILE_TEMPLATE: DEFAULT
+      WANDB_MODE: offline
+    max_attempts: 1
+    container_args:
+      shm_size: 512g
+  command:
+    - >
+      source activate Express4D &&
+      cd /storage/v-jinpewang/az_workspace/zhanglin/Express4D &&
+      python -c "import clip; clip.load('ViT-B/32', device='cpu')" &&
+      bash run_eval_8gpus.sh
