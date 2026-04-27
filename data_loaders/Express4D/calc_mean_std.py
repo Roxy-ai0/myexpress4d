@@ -11,8 +11,7 @@ from utils.data_loaders_utils import convert_to_6d, smooth_filter, get_identity,
 logger = logging.getLogger(__name__)
 
 
-def calculate_mean_std(add_velocities=False, add_landmarks_diffs=False, filter_length=7, debug=False):
-    data_dir = 'dataset/Express4D'
+def calculate_mean_std(add_velocities=False, add_landmarks_diffs=False, filter_length=7, debug=False, data_dir='dataset/Express4D'):
 
     # means = []
     # stds = []

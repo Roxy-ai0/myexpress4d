@@ -230,12 +230,15 @@ if __name__ == '__main__':
     args = evaluation_parser()
     fixseed(args.seed)
     args.batch_size = 32 # This must be 32! Don't change it! otherwise it will cause a bug in R precision calc!
+    eval_dataset_name = args.eval_dataset_override if args.eval_dataset_override else args.dataset
     name = os.path.basename(os.path.dirname(args.model_path))
     niter = os.path.basename(args.model_path).replace('model', '').replace('.pt', '')
     log_file = os.path.join(os.path.dirname(args.model_path), 'eval_humanml_{}_{}'.format(name, niter))
     if args.guidance_param != 1.:
         log_file += f'_gscale{args.guidance_param}'
     log_file += f'_{args.eval_mode}'
+    if args.eval_dataset_override:
+        log_file += f'_evalset_{eval_dataset_name}'
     log_file += f'_seed{args.seed}.log'
 
     print(f'Will save to log file [{log_file}]')
@@ -273,12 +276,12 @@ if __name__ == '__main__':
     logger.configure()
 
     logger.log("creating data loader...")
-    split = 'test'
+    split = args.eval_split
     #TODO: change parameters
-    gen_loader = get_dataset_loader(name=args.dataset, batch_size=args.batch_size, num_frames=None, data_mode=args.data_mode, 
+    gen_loader = get_dataset_loader(name=eval_dataset_name, batch_size=args.batch_size, num_frames=None, data_mode=args.data_mode, 
                                     max_len=args.maximum_frames, flip_face_on=False, fps=args.fps,
                                     split=split, hml_mode='generator')
-    gt_loader = get_dataset_loader(name=args.dataset, batch_size=args.batch_size, num_frames=None, data_mode=args.data_mode, 
+    gt_loader = get_dataset_loader(name=eval_dataset_name, batch_size=args.batch_size, num_frames=None, data_mode=args.data_mode, 
                                    max_len=args.maximum_frames, flip_face_on=False, fps=args.fps,
                                    split=split, hml_mode='gt')
     num_actions = gen_loader.dataset.num_actions
@@ -304,5 +307,5 @@ if __name__ == '__main__':
         )
     }
 
-    eval_wrapper = EvaluatorMDMWrapper(args.dataset, args.eval_model_name, dist_util.dev())
+    eval_wrapper = EvaluatorMDMWrapper(eval_dataset_name, args.eval_model_name, dist_util.dev())
     evaluation(eval_wrapper, gt_loader, eval_motion_loaders, log_file, replication_times, diversity_times, mm_num_times, run_mm=run_mm)

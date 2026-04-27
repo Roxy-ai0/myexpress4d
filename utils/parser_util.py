@@ -275,6 +275,8 @@ def add_evaluation_options(parser):
                        help="For classifier-free sampling - specifies the s parameter, as defined in the paper.")
     group.add_argument("--data_path", type=str,
                        help="in order to get generated data from .npy (for ACTOR comparison)")
+    group.add_argument("--eval_dataset_override", default="", type=str,
+                       help="If set, use this dataset for evaluation loaders/ground-truth instead of the model's training dataset.")
 
 def add_flame_options(parser):
     group = parser.add_argument_group('flame')

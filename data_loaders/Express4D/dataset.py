@@ -64,7 +64,7 @@ class Express4D(Dataset):
         self.opt.flip_face_on = flip_face_on
 
         # 4. 调用原有的核心逻辑
-        self.mean, self.std = calculate_mean_std()
+        self.mean, self.std = calculate_mean_std(data_dir=self.opt.data_root)
         self.w_vectorizer = WordVectorizer('glove', 'our_vab')
         
         # 这一步会真正去加载数据，如果路径对了，就能成功
