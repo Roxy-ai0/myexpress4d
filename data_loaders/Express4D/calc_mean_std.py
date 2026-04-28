@@ -23,10 +23,22 @@ def calculate_mean_std(add_velocities=False, add_landmarks_diffs=False, filter_l
             if '.npy' in fl:
                 data = np.load(os.path.join(root, fl))
                 tensors.append(data)
+    if not tensors:
+        raise ValueError(f'No .npy files were found under [{data_dir}] when calculating mean/std.')
+
     all_frames = np.vstack(tensors)
 
     overall_mean = all_frames.mean(axis=0)
     overall_std = all_frames.std(axis=0)
+    zero_std_mask = overall_std < 1e-8
+    if np.any(zero_std_mask):
+        logger.warning(
+            'Found %d feature dimensions with zero std under [%s]; replacing their std with 1.0 to avoid NaNs during normalization.',
+            int(zero_std_mask.sum()),
+            data_dir,
+        )
+        overall_std = overall_std.copy()
+        overall_std[zero_std_mask] = 1.0
     return overall_mean, overall_std
 
 if __name__ == "__main__":
