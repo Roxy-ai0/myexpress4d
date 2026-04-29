@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # ================= Configuration =================
-MODEL_PATH="./output_model/mdm_mydata/model000450000.pt"
+MODEL_PATH="./model/mdm/model000450000.pt"
 DATASET="express4d"
 DATA_MODE="arkit"
 EVAL_MODE="wo_mm"
@@ -91,6 +91,7 @@ for ((job_idx=0; job_idx<${TOTAL_EVALS}; job_idx++)); do
         --dataset "$DATASET" \
         --data_mode "$DATA_MODE" \
         --device 0 \
+        --use_ema \
         --cond_mode text \
         --eval_mode "$EVAL_MODE" \
         --eval_model_name "$EVAL_MODEL" \
